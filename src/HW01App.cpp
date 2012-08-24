@@ -74,7 +74,7 @@ void HW01App::update()
 	//Set all the pixels to red
 	for(int i=0; i< (*mySurface_).getWidth()*(*mySurface_).getHeight(); i++){
 		dataArray[3*i] = 255;
-		dataArray[3*i+1] = 0;
+		dataArray[3*i+1] = 127;
 		dataArray[3*i+2] = 0;
 	}
 	

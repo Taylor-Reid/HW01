@@ -73,6 +73,7 @@ void HW01App::prepareSettings(Settings* settings){
 	(*settings).setResizable(false);
 }
 
+//This function takes about 15.265 ms for 800x600
 void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2, int rect_width, int rect_height, Color8u fill1, Color8u border1, Color8u fill2, Color8u border2){
 	//Figure out the starting and ending coordinates of the rectangle to fill
 	int startx = (x1 < x2) ? x1 : x2;
@@ -88,32 +89,55 @@ void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2
 	if(endx >= kAppWidth) endx = kAppWidth-1;
 	if(endy >= kAppHeight) endy = kAppHeight-1;
 	
+	//Variable creation can be slow, so moved it outside the loop
+	Color8u c = Color8u(255,0,0);
+	int y_distance_from_start;
+	int rects_tall;
+	int rect_row;
+	int y;
+	bool in_horiz_border;
+	
+	int x_distance_from_start;
+	int rects_along;
+	int rect_col;
+	int x;
+	bool in_vert_border;
+	
 	//I do the loops with x on the inside because this incurs less cache misses
-	for(int y=((starty >= 0) ? starty : 0); y<=endy; y++){
-		int y_distance_from_start = y - starty;
-		int rects_tall = y_distance_from_start/rect_height; //How many squares down from the top of the board?
+	for(y=((starty >= 0) ? starty : 0); y<=endy; y++){
+		y_distance_from_start = y - starty;
+		rects_tall = y_distance_from_start/rect_height; //How many squares down from the top of the board?
 		
-		int rect_row = y_distance_from_start%rect_height;
-		bool in_horiz_border = (rect_row == 0 || rect_row == rect_height-1);
+		rect_row = y_distance_from_start%rect_height;
+		in_horiz_border = (rect_row == 0 || rect_row == rect_height-1);
 		
-		for(int x=((startx >= 0) ? startx : 0); x<=endx; x++){
-			int x_distance_from_start = x - startx;
-			int rects_along = x_distance_from_start/rect_width; //How many squares along from the left of the board?
+		for(x=((startx >= 0) ? startx : 0); x<=endx; x++){
+			x_distance_from_start = x - startx;
+			rects_along = x_distance_from_start/rect_width; //How many squares along from the left of the board?
 			
-			int rect_col = x_distance_from_start%rect_width;
-			bool in_vert_border = (rect_col == 0 || rect_col == rect_width-1);
+			rect_col = x_distance_from_start%rect_width;
+			in_vert_border = (rect_col == 0 || rect_col == rect_width-1);
 			
-			Color8u c = fill1;
 			//This is what makes the checkerboard pattern.
 			if((rects_tall + rects_along)%2 == 0){
-				c = fill1;
+				//I originally had c = fill1, but it turns out that is REALLY slow. Probably causes a copy
+				// constructor to get called!
+				c.r = fill1.r;
+				c.b = fill1.b;
+				c.g = fill1.g;
 				if(in_horiz_border || in_vert_border){
-					c = border1;
+					c.r = border1.r;
+					c.b = border1.b;
+					c.g = border1.g;
 				}
 			} else {
-				c = fill2;
+				c.r = fill2.r;
+				c.b = fill2.b;
+				c.g = fill2.g;
 				if(in_horiz_border || in_vert_border){
-					c = border2;
+					c.r = border2.r;
+					c.b = border2.b;
+					c.g = border2.g;
 				}
 			}
 			pixels[3*(x + y*kAppWidth)] = c.r;
@@ -129,9 +153,10 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 	// more efficient ways to deal with this problem, but this is simple to
 	// understand. 
 	static uint8_t work_buffer[3*kAppWidth*kAppHeight];
-	for(int i=0; i<3*kAppWidth*kAppHeight; i++){
+	memcpy(work_buffer,image_to_blur,3*kAppWidth*kAppHeight);
+	/*for(int i=0; i<3*kAppWidth*kAppHeight; i++){
 		work_buffer[i] = image_to_blur[i];
-	}
+	}*/
 	
 	//Visit every pixel in the image, except the ones on the edge.
 	//TODO Special purpose logic to handle the edge cases
@@ -190,12 +215,17 @@ void HW01App::update()
 	//
 	// Creative bits go here
 	//
+	
 	Color8u fill1 = Color8u(128,128,192);
 	Color8u border1 = Color8u(192,192,255);
 	Color8u fill2 = Color8u(192,192,192);
 	Color8u border2 = Color8u(255,255,255);
+	//With just this method called, frame rate drops from 54 to 53.5.
 	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);
-	selectiveBlur(dataArray, 0);
+	
+	//With just this method called, frame rate drops from 54 to 11.93
+	//selectiveBlur(dataArray, 0);
+	
 	//
 	// End creative bits
 	//

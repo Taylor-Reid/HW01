@@ -216,7 +216,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>F0BE49FD15EA4BBF008532C8</string>
+						<string>F0BE4A7315EA646B008532C8</string>
 						<key>history</key>
 						<array>
 							<string>F0BE499515E9B961008532C8</string>
@@ -235,7 +235,7 @@
 				<key>PBXModuleWindowStatusBarHidden2</key>
 				<false/>
 				<key>RubberWindowFrame</key>
-				<string>46 56 1089 822 0 0 1440 878 </string>
+				<string>173 56 1089 822 0 0 1440 878 </string>
 			</dict>
 		</dict>
 	</array>
@@ -366,7 +366,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>F0BE49FC15EA4BBF008532C8</string>
+										<string>F0BE4A7215EA646B008532C8</string>
 										<key>history</key>
 										<array>
 											<string>F0BE49F115EA4B52008532C8</string>
@@ -569,11 +569,12 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
+		<string>F0BE4A7415EA646B008532C8</string>
 		<string>F0BE499815E9B961008532C8</string>
 		<string>F0BE499915E9B961008532C8</string>
-		<string>1C78EAAD065D492600B07095</string>
 		<string>1CD10A99069EF8BA00B06720</string>
 		<string>F0BE496E15E7B193008532C8</string>
+		<string>1C78EAAD065D492600B07095</string>
 		<string>F0BE499315E9B961008532C8</string>
 	</array>
 	<key>WindowString</key>
@@ -925,7 +926,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {650, 209}}</string>
 								<key>RubberWindowFrame</key>
-								<string>200 605 650 250 0 0 1440 878 </string>
+								<string>29 628 650 250 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXDebugCLIModule</string>
@@ -954,11 +955,11 @@
 			<key>ToolbarConfiguration</key>
 			<string>xcode.toolbar.config.consoleV3</string>
 			<key>WindowString</key>
-			<string>200 605 650 250 0 0 1440 878 </string>
+			<string>29 628 650 250 0 0 1440 878 </string>
 			<key>WindowToolGUID</key>
 			<string>1C78EAAD065D492600B07095</string>
 			<key>WindowToolIsVisible</key>
-			<false/>
+			<true/>
 		</dict>
 		<dict>
 			<key>Identifier</key>

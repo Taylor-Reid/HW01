@@ -13,6 +13,9 @@
  *
  * @note The code fore creating Textures and Surfaces comes from another
  * of my projects, https://github.com/brinkmwj/CatPicture/blob/master/src/CatPictureApp.cpp
+ *
+ * @note This project satisfies goals A.1 (rectangle), A.2 (circle), B.1 (blur), E.2 (transparency),
+ * E.5 (animation) and E.6 (mouse interaction)
  */
 
 #include "cinder/app/AppBasic.h"
@@ -42,6 +45,14 @@ class HW01App : public AppBasic {
 	int frame_number_;
 	boost::posix_time::ptime app_start_time_;
 	
+	struct rings_info{
+		int x;
+		int y;
+		int r;
+	};
+	deque<rings_info> rings_list_;
+	deque<rings_info> accident_list_;
+	
 	uint8_t* my_blur_pattern_;
 	
 	//Width and height of the screen
@@ -69,6 +80,20 @@ class HW01App : public AppBasic {
 	 * This satisfies the "blur" requirement, goal B.1
 	 */
 	void selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern);
+	
+	
+	/**
+	 * Draw concentric circles, each of width 7, until reaching r.
+	 *
+	 * This satisfies the "circle" requirement, goal A.2 and "transparency" (E.2)
+	 */
+	void drawRings(uint8_t* pixels, int x, int y, int r, Color8u c);
+	
+	/**
+	 * This was the original version of drawRings, which was buggy, but looked cool,
+	 * so I kept it.
+	 */
+	void drawAccident(uint8_t* pixels, int x, int y, int r, Color8u c);
 };
 
 void HW01App::prepareSettings(Settings* settings){
@@ -230,11 +255,13 @@ void HW01App::setup()
 {
 	frame_number_=0;
 	
+	//This is the setup that everyone needs to do
 	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
 	myTexture_ = new gl::Texture(*mySurface_);
-	Surface baby_picture(loadImage( loadResource("baby.jpg") ));
-	uint8_t* blur_data = baby_picture.getData();
 	
+	//Setup for my blur function
+	Surface baby_picture(loadImage( loadResource("baby.jpg") ));
+	uint8_t* blur_data = baby_picture.getData();	
 	my_blur_pattern_ = new uint8_t[kAppWidth*kAppHeight*3];
 	for(int y=0;y<kAppHeight;y++){
 		for(int x=0;x<kAppWidth;x++){
@@ -242,11 +269,78 @@ void HW01App::setup()
 			my_blur_pattern_[offset] = blur_data[offset];
 		}
 	}
+	
+	//Setup for my rings
+	rings_info t;
+	t.x = 700;
+	t.y = 200;
+	t.r = 7*50;
+	rings_list_.push_back(t);
+	t.x = 600;
+	t.y = 100;
+	rings_list_.push_back(t);
 		
 }
 
 void HW01App::mouseDown( MouseEvent event )
 {
+	//Satisfies E.6, though it is debatable whether or not this is an "interesting" interaction
+	rings_info t;
+	t.x = event.getX();
+	t.y = event.getY();
+	t.r = 7*50;
+	
+	if(rand() % 5 != 0){
+		rings_list_.push_back(t);
+	} else {
+		accident_list_.push_back(t);
+	}
+}
+
+void HW01App::drawRings(uint8_t* pixels, int center_x, int center_y, int r, Color8u c){
+	//Bounds test
+	if(r <= 0) return;
+	
+	for(int y=center_y-r; y<=center_y+r; y++){
+		for(int x=center_x-r; x<=center_x+r; x++){
+			//Bounds test, to make sure we don't access array out of bounds
+			if(y < 0 || x < 0 || x >= kAppWidth || y >= kAppHeight) continue;
+			
+			int dist = sqrt((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y));
+			if(dist <= r){
+				if((dist/7)%2 == 1 ){
+					int offset = 3*(x + y*kAppWidth);
+					//By blending the colors I get a semi-transparent effect
+					pixels[offset] = pixels[offset]/2 + c.r/2;
+					pixels[offset+1] = pixels[offset+1]/2 + c.g/2;
+					pixels[offset+2] = pixels[offset+2]/2 + c.b/2;
+				}
+			}
+		}
+	}
+}
+
+void HW01App::drawAccident(uint8_t* pixels, int center_x, int center_y, int r, Color8u c){
+	//Bounds test
+	if(r <= 0) return;
+	
+	int r2 = r*r;
+	for(int y=center_y-r; y<=center_y+r; y++){
+		for(int x=center_x-r; x<=center_x+r; x++){
+			//Bounds test, to make sure we don't access array out of bounds
+			if(y < 0 || x < 0 || x >= kAppWidth || y >= kAppHeight) continue;
+			
+			int dist = (x-center_x)*(x-center_x) + (y-center_y)*(y-center_y);
+			if(dist <= r2){
+				if((dist/49)%2 == 0){
+					int offset = 3*(x + y*kAppWidth);
+					pixels[offset] = c.r;
+					pixels[offset+1] = c.g;
+					pixels[offset+2] = c.b;
+				}
+			}
+		}
+	}
 }
 
 void HW01App::update()
@@ -265,10 +359,24 @@ void HW01App::update()
 	Color8u fill2 = Color8u(192,192,192);
 	Color8u border2 = Color8u(255,255,255);
 	//With just this method called, frame rate drops from 54 to 53.5.
-	tileWithRectangles(dataArray, -(frame_number_%10), -(frame_number_%10), 800, 600, 5, 5, fill1, border1, fill2, border2);
+	tileWithRectangles(dataArray, -(frame_number_%14), -(frame_number_%14), 800, 600, 7, 7, fill1, border1, fill2, border2);
 	
 	//With just this method called, frame rate drops from 54 to 11.93
 	selectiveBlur(dataArray, my_blur_pattern_);
+	
+	while(rings_list_.size() > 0 && rings_list_[0].r <= 0) rings_list_.pop_front();
+	while(accident_list_.size() > 0 && accident_list_[0].r <= 0) accident_list_.pop_front();
+	
+	for(int i=0;i<rings_list_.size();i++){
+		rings_info t = rings_list_[i];
+		drawRings(dataArray, t.x, t.y, t.r, Color8u(249,132,229));
+		rings_list_[i].r -= 4;
+	}
+	for(int i=0;i<accident_list_.size();i++){
+		rings_info t = accident_list_[i];
+		drawAccident(dataArray, t.x, t.y, t.r, Color8u(249,132,229));
+		accident_list_[i].r -= 4;
+	}
 	
 	//
 	// End creative bits

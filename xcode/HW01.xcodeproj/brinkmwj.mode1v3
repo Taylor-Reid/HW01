@@ -216,7 +216,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>F0BE49EA15EA369B008532C8</string>
+						<string>F0BE49FD15EA4BBF008532C8</string>
 						<key>history</key>
 						<array>
 							<string>F0BE499515E9B961008532C8</string>
@@ -366,10 +366,10 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>F0BE49E915EA369B008532C8</string>
+										<string>F0BE49FC15EA4BBF008532C8</string>
 										<key>history</key>
 										<array>
-											<string>F0BE499115E9B961008532C8</string>
+											<string>F0BE49F115EA4B52008532C8</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -593,6 +593,8 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -615,8 +617,6 @@
 							<string>218pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -669,7 +669,7 @@
 			<key>WindowToolGUID</key>
 			<string>F0BE496E15E7B193008532C8</string>
 			<key>WindowToolIsVisible</key>
-			<false/>
+			<true/>
 		</dict>
 		<dict>
 			<key>FirstTimeWindowDisplayed</key>
@@ -911,6 +911,8 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>

@@ -19,6 +19,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/ImageIo.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 using namespace ci;
 using namespace ci::app;
@@ -38,6 +39,7 @@ class HW01App : public AppBasic {
 	
 	//Track how many frames we have shown, for animatino purposes
 	int frame_number_;
+	boost::posix_time::ptime app_start_time;
 	
 	//Width and height of the screen
 	static const int kAppWidth=800;
@@ -170,6 +172,8 @@ void HW01App::setup()
 	
 	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
 	myTexture_ = new gl::Texture(*mySurface_);
+	
+	app_start_time = boost::posix_time::microsec_clock::local_time();
 }
 
 void HW01App::mouseDown( MouseEvent event )
@@ -208,6 +212,10 @@ void HW01App::update()
 	//keeps track of how many frames we have shown.
 	frame_number_++;
 	
+	//For debugging: Print the actual frames per second
+	boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+	boost::posix_time::time_duration msdiff = now - app_start_time;
+    console() << (1000.0*frame_number_) / msdiff.total_milliseconds() << std::endl;
 }
 
 void HW01App::draw()

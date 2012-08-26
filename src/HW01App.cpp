@@ -32,20 +32,78 @@ class HW01App : public AppBasic {
 	void draw();
 	void prepareSettings(Settings* settings);
 	
-private:
+  private:
 	Surface* mySurface_; //The Surface object whose pixel array we will modify
 	gl::Texture* myTexture_; //The Texture object that we use to display our Surface in the window
 	
+	//Track how many frames we have shown, for animatino purposes
 	int frame_number_;
 	
+	//Width and height of the screen
 	static const int kAppWidth=800;
 	static const int kAppHeight=600;
+	
+	/**
+	 * Fill a rectange with a checkerboard pattern.
+	 *
+	 * Fill the rectangle between (x1,y1) and (x2,y2) with a checkerboard pattern. The pattern is made up of
+	 * rectangles of width and height specified by rect_width and rect_height. x1, y1, x2, and y2 are allowed to be
+	 * negative and/or larger than the extents of the screen. The border is always 1 pixel in width.
+	 */
+	void tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2, int rect_width, int rect_height, Color8u fill1, Color8u border1, Color8u fill2, Color8u border2);
 
 };
 
 void HW01App::prepareSettings(Settings* settings){
 	(*settings).setWindowSize(kAppWidth,kAppHeight);
 	(*settings).setResizable(false);
+}
+
+void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2, int rect_width, int rect_height, Color8u fill1, Color8u border1, Color8u fill2, Color8u border2){
+	//Figure out the starting and ending coordinates of the rectangle to fill
+	int startx = (x1 < x2) ? x1 : x2;
+	int endx = (x1 < x2) ? x2 : x1;
+	int starty = (y1 < y2) ? y1 : y2;
+	int endy = (y1 < y2) ? y2 : y1;
+	
+	//Do some bounds checking
+	if(endx < 0) return; //Visible part of rectangle is off screen
+	if(endy < 0) return; //Visible part of rectangle is off screen
+	if(startx >= kAppWidth) return; //Visible part of rectangle is off screen
+	if(starty >= kAppHeight) return; //Visible part of rectangle is off screen
+	if(endx >= kAppWidth) endx = kAppWidth-1;
+	if(endy >= kAppHeight) endy = kAppHeight-1;
+	
+	//I do the loops with x on the inside because this incurs less cache misses
+	for(int y=((starty >= 0) ? starty : 0); y<=endy; y++){
+		int y_distance_from_start = y - starty;
+		int rects_tall = y_distance_from_start/rect_height;
+		int rect_row = y_distance_from_start%rect_height;
+		bool in_horiz_border = (rect_row == 0 || rect_row == rect_height-1);
+		
+		for(int x=((startx >= 0) ? startx : 0); x<=endx; x++){
+			int x_distance_from_start = x - startx;
+			int rects_along = x_distance_from_start/rect_width;
+			int rect_col = x_distance_from_start%rect_width;
+			bool in_vert_border = (rect_col == 0 || rect_col == rect_width-1);
+			
+			Color8u c = fill1;
+			if((rects_tall + rects_along)%2 == 0){
+				c = fill1;
+				if(in_horiz_border || in_vert_border){
+					c = border1;
+				}
+			} else {
+				c = fill2;
+				if(in_horiz_border || in_vert_border){
+					c = border2;
+				}
+			}
+			pixels[3*(x + y*kAppWidth)] = c.r;
+			pixels[3*(x + y*kAppWidth)+1] = c.g;
+			pixels[3*(x + y*kAppWidth)+2] = c.b;
+		}
+	}
 }
 
 void HW01App::setup()
@@ -71,13 +129,11 @@ void HW01App::update()
 	// Creative bits go here
 	//
 	
-	//Set all the pixels to red
-	for(int i=0; i< (*mySurface_).getWidth()*(*mySurface_).getHeight(); i++){
-		dataArray[3*i] = 255;
-		dataArray[3*i+1] = 127;
-		dataArray[3*i+2] = 0;
-	}
-	
+	Color8u fill1 = Color8u(0,0,192);
+	Color8u border1 = Color8u(64,64,255);
+	Color8u fill2 = Color8u(0,64,192);
+	Color8u border2 = Color8u(64,128,255);
+	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);	
 	//
 	// End creative bits
 	//

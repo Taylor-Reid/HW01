@@ -77,17 +77,20 @@ void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2
 	//I do the loops with x on the inside because this incurs less cache misses
 	for(int y=((starty >= 0) ? starty : 0); y<=endy; y++){
 		int y_distance_from_start = y - starty;
-		int rects_tall = y_distance_from_start/rect_height;
+		int rects_tall = y_distance_from_start/rect_height; //How many squares down from the top of the board?
+		
 		int rect_row = y_distance_from_start%rect_height;
 		bool in_horiz_border = (rect_row == 0 || rect_row == rect_height-1);
 		
 		for(int x=((startx >= 0) ? startx : 0); x<=endx; x++){
 			int x_distance_from_start = x - startx;
-			int rects_along = x_distance_from_start/rect_width;
+			int rects_along = x_distance_from_start/rect_width; //How many squares along from the left of the board?
+			
 			int rect_col = x_distance_from_start%rect_width;
 			bool in_vert_border = (rect_col == 0 || rect_col == rect_width-1);
 			
 			Color8u c = fill1;
+			//This is what makes the checkerboard pattern.
 			if((rects_tall + rects_along)%2 == 0){
 				c = fill1;
 				if(in_horiz_border || in_vert_border){
@@ -128,11 +131,10 @@ void HW01App::update()
 	//
 	// Creative bits go here
 	//
-	
-	Color8u fill1 = Color8u(0,0,192);
-	Color8u border1 = Color8u(64,64,255);
-	Color8u fill2 = Color8u(0,64,192);
-	Color8u border2 = Color8u(64,128,255);
+	Color8u fill1 = Color8u(128,128,192);
+	Color8u border1 = Color8u(192,192,255);
+	Color8u fill2 = Color8u(192,192,192);
+	Color8u border2 = Color8u(255,255,255);
 	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);	
 	//
 	// End creative bits

@@ -49,9 +49,21 @@ class HW01App : public AppBasic {
 	 * Fill the rectangle between (x1,y1) and (x2,y2) with a checkerboard pattern. The pattern is made up of
 	 * rectangles of width and height specified by rect_width and rect_height. x1, y1, x2, and y2 are allowed to be
 	 * negative and/or larger than the extents of the screen. The border is always 1 pixel in width.
+	 *
+	 * This satisfies the "rectangle" requirement, goal A.1
 	 */
 	void tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2, int rect_width, int rect_height, Color8u fill1, Color8u border1, Color8u fill2, Color8u border2);
 
+	/**
+	 * Blur one image, using another as a template.
+	 *
+	 * Blur the image_to_blur using a standard convolution blur, but the strength of the blur depends on the blur_pattern.
+	 * Pixels are fulling blurred if they are black not blurred at all if they are white. Both images must be exactly the
+	 * same size as the app window.
+	 *
+	 * This satisfies the "blur" requirement, goal B.1
+	 */
+	void selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern);
 };
 
 void HW01App::prepareSettings(Settings* settings){
@@ -109,6 +121,49 @@ void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2
 	}
 }
 
+void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
+	//Convolution filters tend to overwrite the data that you need, so
+	// we keep a temporary copy of the image_to_blur. There are certainly
+	// more efficient ways to deal with this problem, but this is simple to
+	// understand. 
+	static uint8_t work_buffer[3*kAppWidth*kAppHeight];
+	for(int i=0; i<3*kAppWidth*kAppHeight; i++){
+		work_buffer[i] = image_to_blur[i];
+	}
+	
+	//Visit every pixel in the image, except the ones on the edge.
+	//TODO Special purpose logic to handle the edge cases
+	for(int y=1;y<kAppHeight-1;y++){
+		for(int x=1;x<kAppWidth-1;x++){
+			
+			//TODO Make the kernel depend on the blur pattern
+			//Since we are using integers here, we can't just use "1/9" because
+			// that rounds down to zero. Instead we use 255/9, and then at the end,
+			// once we have totalled everything up, we will divide out the extra 255 factor
+			int kernel[9] = 
+				{255/9,255/9,255/9,
+				 255/9,255/9,255/9,
+				 255/9,255/9,255/9};
+			
+			//Compute the convolution of the kernel with the region around the current pixel
+			//I use ints for the totals and the kernel to avoid overflow
+			int total_red=0;
+			int total_green=0;
+			int total_blue=0;
+			for(int ky=-1;ky<=1;ky++){
+				for(int kx=-1;kx<=1;kx++){
+					total_red += work_buffer[3*(x + kx + (y+ky)*kAppWidth)]*kernel[kx+1 + (ky+1)*3];
+					total_green += work_buffer[3*(x + kx + (y+ky)*kAppWidth)+1]*kernel[kx+1 + (ky+1)*3];
+					total_blue += work_buffer[3*(x + kx + (y+ky)*kAppWidth)+2]*kernel[kx+1 + (ky+1)*3];
+				}
+			}
+			image_to_blur[3*(x + y*kAppWidth)] = (total_red/255);
+			image_to_blur[3*(x + y*kAppWidth)+1] = (total_green/255);
+			image_to_blur[3*(x + y*kAppWidth)+2] = (total_blue/255);
+		}
+	}
+}
+
 void HW01App::setup()
 {
 	frame_number_=0;
@@ -135,7 +190,8 @@ void HW01App::update()
 	Color8u border1 = Color8u(192,192,255);
 	Color8u fill2 = Color8u(192,192,192);
 	Color8u border2 = Color8u(255,255,255);
-	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);	
+	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);
+	selectiveBlur(dataArray, 0);
 	//
 	// End creative bits
 	//

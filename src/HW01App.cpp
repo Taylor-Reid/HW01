@@ -197,8 +197,6 @@ void HW01App::setup()
 	
 	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
 	myTexture_ = new gl::Texture(*mySurface_);
-	
-	app_start_time = boost::posix_time::microsec_clock::local_time();
 }
 
 void HW01App::mouseDown( MouseEvent event )
@@ -238,6 +236,8 @@ void HW01App::update()
 	//Only save the first frame of drawing as output
 	if(frame_number_ == 0){
 		writeImage("brinkmwj.png",*mySurface_);
+		//We do this here, instead of setup, because we don't want to count the writeImage time in our estimate
+		app_start_time = boost::posix_time::microsec_clock::local_time();
 	}
 	//keeps track of how many frames we have shown.
 	frame_number_++;

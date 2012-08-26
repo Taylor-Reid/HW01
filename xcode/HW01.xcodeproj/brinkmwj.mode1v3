@@ -216,10 +216,10 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>F0BE4AEA15EAB887008532C8</string>
+						<string>F0BE4B4315EAC65F008532C8</string>
 						<key>history</key>
 						<array>
-							<string>F0BE499515E9B961008532C8</string>
+							<string>F0BE4AF915EAC2A5008532C8</string>
 						</array>
 					</dict>
 					<key>SplitCount</key>
@@ -235,7 +235,7 @@
 				<key>PBXModuleWindowStatusBarHidden2</key>
 				<false/>
 				<key>RubberWindowFrame</key>
-				<string>251 56 1089 822 0 0 1440 878 </string>
+				<string>215 56 1089 822 0 0 1440 878 </string>
 			</dict>
 		</dict>
 	</array>
@@ -306,15 +306,18 @@
 							<array>
 								<string>29B97314FDCFA39411CA2CEA</string>
 								<string>080E96DDFE201D6D7F000001</string>
+								<string>29B97317FDCFA39411CA2CEA</string>
 								<string>29B97323FDCFA39411CA2CEA</string>
 								<string>19C28FACFE9D520D11CA2CBB</string>
+								<string>1C37FBAC04509CD000000102</string>
+								<string>F0BE4B1B15EAC4A1008532C8</string>
+								<string>F0BE4B1C15EAC4A1008532C8</string>
 								<string>1C37FABC05509CD000000102</string>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>3</integer>
-									<integer>2</integer>
+									<integer>4</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -349,6 +352,8 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -366,10 +371,10 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>F0BE4AE915EAB887008532C8</string>
+										<string>F0BE4B4215EAC65F008532C8</string>
 										<key>history</key>
 										<array>
-											<string>F0BE49F115EA4B52008532C8</string>
+											<string>F0BE4B1D15EAC4A1008532C8</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -391,8 +396,6 @@
 							<string>277pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -569,12 +572,13 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>F0BE4AEB15EAB887008532C8</string>
+		<string>F0BE4B4415EAC65F008532C8</string>
 		<string>F0BE499815E9B961008532C8</string>
 		<string>F0BE499915E9B961008532C8</string>
 		<string>1CD10A99069EF8BA00B06720</string>
 		<string>F0BE496E15E7B193008532C8</string>
 		<string>1C78EAAD065D492600B07095</string>
+		<string>/Users/brinkmwj/Work/Teaching and learning/Courses/2012-2013_Fall/274/Gits/HW01/xcode/HW01.xcodeproj</string>
 		<string>F0BE499315E9B961008532C8</string>
 	</array>
 	<key>WindowString</key>

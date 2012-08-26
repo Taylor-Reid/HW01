@@ -20,6 +20,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/ImageIo.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "Resources.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -158,12 +159,16 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 	//This memcpy is not much of a performance hit.
 	memcpy(work_buffer,image_to_blur,3*kAppWidth*kAppHeight);
 	
-	//These are used in right shifts. Since there are nine elements, we are dividing
-	// 7 of them by 8, and 2 of them by 16, so the total can never go above 255
-	uint8_t kernel[9] = 
-	   {4,4,3,
-		3,3,3,
-		3,3,3};
+	//These are used in right shifts.
+	//Both of these kernels actually darken as well as blur.
+	uint8_t kernelA[9] = 
+	   {4,3,4,
+		4,3,4,
+		4,3,4};
+	uint8_t kernelB[9] = 
+	   {4,3,4,
+		4,2,4,
+		4,3,4};
 	
 	uint8_t total_red  =0;
 	uint8_t total_green=0;
@@ -178,7 +183,7 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 		for( x=1;x<kAppWidth-1;x++){
 			
 			offset = 3*(x + y*kAppWidth);
-			if(blur_pattern[offset] < 127){
+			if(blur_pattern[offset] < 256/3){
 				//Compute the convolution of the kernel with the region around the current pixel
 				//I use ints for the totals and the kernel to avoid overflow
 				total_red=0;
@@ -187,7 +192,22 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 				for( ky=-1;ky<=1;ky++){
 					for( kx=-1;kx<=1;kx++){
 						offset = 3*(x + kx + (y+ky)*kAppWidth);
-						k = kernel[kx+1 + (ky+1)*3];
+						k = kernelA[kx+1 + (ky+1)*3];
+						total_red   += (work_buffer[offset  ] >> k);
+						total_green += (work_buffer[offset+1] >> k);
+						total_blue  += (work_buffer[offset+2] >> k);
+					}
+				}
+			} else if(blur_pattern[offset] < 2*256/3){
+				//Compute the convolution of the kernel with the region around the current pixel
+				//I use ints for the totals and the kernel to avoid overflow
+				total_red=0;
+				total_green=0;
+				total_blue=0;
+				for( ky=-1;ky<=1;ky++){
+					for( kx=-1;kx<=1;kx++){
+						offset = 3*(x + kx + (y+ky)*kAppWidth);
+						k = kernelB[kx+1 + (ky+1)*3];
 						total_red   += (work_buffer[offset  ] >> k);
 						total_green += (work_buffer[offset+1] >> k);
 						total_blue  += (work_buffer[offset+2] >> k);
@@ -212,12 +232,14 @@ void HW01App::setup()
 	
 	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
 	myTexture_ = new gl::Texture(*mySurface_);
+	Surface baby_picture(loadImage( loadResource("baby.jpg") ));
+	uint8_t* blur_data = baby_picture.getData();
 	
 	my_blur_pattern_ = new uint8_t[kAppWidth*kAppHeight*3];
 	for(int y=0;y<kAppHeight;y++){
 		for(int x=0;x<kAppWidth;x++){
 			int offset = 3*(x + y*kAppWidth);
-			my_blur_pattern_[offset] = 255*(((x/64)+(y/64))%2);
+			my_blur_pattern_[offset] = blur_data[offset];
 		}
 	}
 		

@@ -39,7 +39,9 @@ class HW01App : public AppBasic {
 	
 	//Track how many frames we have shown, for animatino purposes
 	int frame_number_;
-	boost::posix_time::ptime app_start_time;
+	boost::posix_time::ptime app_start_time_;
+	
+	uint8_t* my_blur_pattern_;
 	
 	//Width and height of the screen
 	static const int kAppWidth=800;
@@ -153,40 +155,53 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 	// more efficient ways to deal with this problem, but this is simple to
 	// understand. 
 	static uint8_t work_buffer[3*kAppWidth*kAppHeight];
+	//This memcpy is not much of a performance hit.
 	memcpy(work_buffer,image_to_blur,3*kAppWidth*kAppHeight);
-	/*for(int i=0; i<3*kAppWidth*kAppHeight; i++){
-		work_buffer[i] = image_to_blur[i];
-	}*/
+	
+	//These are used in right shifts. Since there are nine elements, we are dividing
+	// 7 of them by 8, and 2 of them by 16, so the total can never go above 255
+	uint8_t kernel[9] = 
+	   {4,4,3,
+		3,3,3,
+		3,3,3};
+	
+	uint8_t total_red  =0;
+	uint8_t total_green=0;
+	uint8_t total_blue =0;
+	int offset;
+	int k;
+	int y,x,ky,kx;
 	
 	//Visit every pixel in the image, except the ones on the edge.
 	//TODO Special purpose logic to handle the edge cases
-	for(int y=1;y<kAppHeight-1;y++){
-		for(int x=1;x<kAppWidth-1;x++){
+	for( y=1;y<kAppHeight-1;y++){
+		for( x=1;x<kAppWidth-1;x++){
 			
-			//TODO Make the kernel depend on the blur pattern
-			//Since we are using integers here, we can't just use "1/9" because
-			// that rounds down to zero. Instead we use 255/9, and then at the end,
-			// once we have totalled everything up, we will divide out the extra 255 factor
-			int kernel[9] = 
-				{255/9,255/9,255/9,
-				 255/9,255/9,255/9,
-				 255/9,255/9,255/9};
-			
-			//Compute the convolution of the kernel with the region around the current pixel
-			//I use ints for the totals and the kernel to avoid overflow
-			int total_red=0;
-			int total_green=0;
-			int total_blue=0;
-			for(int ky=-1;ky<=1;ky++){
-				for(int kx=-1;kx<=1;kx++){
-					total_red += work_buffer[3*(x + kx + (y+ky)*kAppWidth)]*kernel[kx+1 + (ky+1)*3];
-					total_green += work_buffer[3*(x + kx + (y+ky)*kAppWidth)+1]*kernel[kx+1 + (ky+1)*3];
-					total_blue += work_buffer[3*(x + kx + (y+ky)*kAppWidth)+2]*kernel[kx+1 + (ky+1)*3];
+			offset = 3*(x + y*kAppWidth);
+			if(blur_pattern[offset] < 127){
+				//Compute the convolution of the kernel with the region around the current pixel
+				//I use ints for the totals and the kernel to avoid overflow
+				total_red=0;
+				total_green=0;
+				total_blue=0;
+				for( ky=-1;ky<=1;ky++){
+					for( kx=-1;kx<=1;kx++){
+						offset = 3*(x + kx + (y+ky)*kAppWidth);
+						k = kernel[kx+1 + (ky+1)*3];
+						total_red   += (work_buffer[offset  ] >> k);
+						total_green += (work_buffer[offset+1] >> k);
+						total_blue  += (work_buffer[offset+2] >> k);
+					}
 				}
+			} else {
+				total_red   = work_buffer[offset];
+				total_green = work_buffer[offset+1];
+				total_blue  = work_buffer[offset+2];
 			}
-			image_to_blur[3*(x + y*kAppWidth)] = (total_red/255);
-			image_to_blur[3*(x + y*kAppWidth)+1] = (total_green/255);
-			image_to_blur[3*(x + y*kAppWidth)+2] = (total_blue/255);
+			
+			image_to_blur[offset]   = total_red;
+			image_to_blur[offset+1] = total_green;
+			image_to_blur[offset+2] = total_blue;
 		}
 	}
 }
@@ -197,6 +212,15 @@ void HW01App::setup()
 	
 	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
 	myTexture_ = new gl::Texture(*mySurface_);
+	
+	my_blur_pattern_ = new uint8_t[kAppWidth*kAppHeight*3];
+	for(int y=0;y<kAppHeight;y++){
+		for(int x=0;x<kAppWidth;x++){
+			int offset = 3*(x + y*kAppWidth);
+			my_blur_pattern_[offset] = 255*(((x/64)+(y/64))%2);
+		}
+	}
+		
 }
 
 void HW01App::mouseDown( MouseEvent event )
@@ -219,10 +243,10 @@ void HW01App::update()
 	Color8u fill2 = Color8u(192,192,192);
 	Color8u border2 = Color8u(255,255,255);
 	//With just this method called, frame rate drops from 54 to 53.5.
-	tileWithRectangles(dataArray, -1, -(frame_number_%10), 801, 600, 802, 5, fill1, border1, fill2, border2);
+	tileWithRectangles(dataArray, -(frame_number_%10), -(frame_number_%10), 800, 600, 5, 5, fill1, border1, fill2, border2);
 	
 	//With just this method called, frame rate drops from 54 to 11.93
-	//selectiveBlur(dataArray, 0);
+	selectiveBlur(dataArray, my_blur_pattern_);
 	
 	//
 	// End creative bits
@@ -237,14 +261,14 @@ void HW01App::update()
 	if(frame_number_ == 0){
 		writeImage("brinkmwj.png",*mySurface_);
 		//We do this here, instead of setup, because we don't want to count the writeImage time in our estimate
-		app_start_time = boost::posix_time::microsec_clock::local_time();
+		app_start_time_ = boost::posix_time::microsec_clock::local_time();
 	}
 	//keeps track of how many frames we have shown.
 	frame_number_++;
 	
 	//For debugging: Print the actual frames per second
 	boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-	boost::posix_time::time_duration msdiff = now - app_start_time;
+	boost::posix_time::time_duration msdiff = now - app_start_time_;
     console() << (1000.0*frame_number_) / msdiff.total_milliseconds() << std::endl;
 }
 

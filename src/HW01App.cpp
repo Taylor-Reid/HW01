@@ -18,15 +18,15 @@
  * E.5 (animation) and E.6 (mouse interaction)
  */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/AppBasic.h" /*copy pastes things*/
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/ImageIo.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "Resources.h"
 
-using namespace ci;
-using namespace ci::app;
+using namespace ci;/*cinder namespace for accessing cinder functions*/
+using namespace ci::app;/*indicates computer should try namespace if function location is not defined*/
 using namespace std;
 
 class HW01App : public AppBasic {

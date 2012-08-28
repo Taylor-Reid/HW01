@@ -58,6 +58,7 @@ class HW01App : public AppBasic {
 	//Width and height of the screen
 	static const int kAppWidth=800;
 	static const int kAppHeight=600;
+	static const int kTextureSize=1024; //Must be the next power of 2 bigger or equal to app dimensions
 	
 	/**
 	 * Fill a rectange with a checkerboard pattern.
@@ -168,9 +169,9 @@ void HW01App::tileWithRectangles(uint8_t* pixels, int x1, int y1, int x2, int y2
 					c.g = border2.g;
 				}
 			}
-			pixels[3*(x + y*kAppWidth)] = c.r;
-			pixels[3*(x + y*kAppWidth)+1] = c.g;
-			pixels[3*(x + y*kAppWidth)+2] = c.b;
+			pixels[3*(x + y*kTextureSize)] = c.r;
+			pixels[3*(x + y*kTextureSize)+1] = c.g;
+			pixels[3*(x + y*kTextureSize)+2] = c.b;
 		}
 	}
 }
@@ -180,9 +181,9 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 	// we keep a temporary copy of the image_to_blur. There are certainly
 	// more efficient ways to deal with this problem, but this is simple to
 	// understand. 
-	static uint8_t work_buffer[3*kAppWidth*kAppHeight];
+	static uint8_t work_buffer[3*kTextureSize*kTextureSize];
 	//This memcpy is not much of a performance hit.
-	memcpy(work_buffer,image_to_blur,3*kAppWidth*kAppHeight);
+	memcpy(work_buffer,image_to_blur,3*kTextureSize*kTextureSize);
 	
 	//These are used in right shifts.
 	//Both of these kernels actually darken as well as blur.
@@ -216,7 +217,7 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 				total_blue=0;
 				for( ky=-1;ky<=1;ky++){
 					for( kx=-1;kx<=1;kx++){
-						offset = 3*(x + kx + (y+ky)*kAppWidth);
+						offset = 3*(x + kx + (y+ky)*kTextureSize);
 						k = kernelA[kx+1 + (ky+1)*3];
 						total_red   += (work_buffer[offset  ] >> k);
 						total_green += (work_buffer[offset+1] >> k);
@@ -231,7 +232,7 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 				total_blue=0;
 				for( ky=-1;ky<=1;ky++){
 					for( kx=-1;kx<=1;kx++){
-						offset = 3*(x + kx + (y+ky)*kAppWidth);
+						offset = 3*(x + kx + (y+ky)*kTextureSize);
 						k = kernelB[kx+1 + (ky+1)*3];
 						total_red   += (work_buffer[offset  ] >> k);
 						total_green += (work_buffer[offset+1] >> k);
@@ -251,16 +252,17 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 	}
 }
 
+
 void HW01App::setup()
 {
 	frame_number_=0;
 	
 	//This is the setup that everyone needs to do
-	mySurface_ = new Surface(kAppWidth,kAppHeight,false);
+	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
 	myTexture_ = new gl::Texture(*mySurface_);
 	
 	//Setup for my blur function
-	Surface baby_picture(loadImage( loadResource("baby.jpg") ));
+	Surface baby_picture(loadImage( loadResource(RES_BABY) ));
 	uint8_t* blur_data = baby_picture.getData();	
 	my_blur_pattern_ = new uint8_t[kAppWidth*kAppHeight*3];
 	for(int y=0;y<kAppHeight;y++){
@@ -306,10 +308,10 @@ void HW01App::drawRings(uint8_t* pixels, int center_x, int center_y, int r, Colo
 			//Bounds test, to make sure we don't access array out of bounds
 			if(y < 0 || x < 0 || x >= kAppWidth || y >= kAppHeight) continue;
 			
-			int dist = sqrt((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y));
+			int dist = (int)sqrt((double)((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y)));
 			if(dist <= r){
 				if((dist/7)%2 == 1 ){
-					int offset = 3*(x + y*kAppWidth);
+					int offset = 3*(x + y*kTextureSize);
 					//By blending the colors I get a semi-transparent effect
 					pixels[offset] = pixels[offset]/2 + c.r/2;
 					pixels[offset+1] = pixels[offset+1]/2 + c.g/2;
@@ -333,7 +335,7 @@ void HW01App::drawAccident(uint8_t* pixels, int center_x, int center_y, int r, C
 			int dist = (x-center_x)*(x-center_x) + (y-center_y)*(y-center_y);
 			if(dist <= r2){
 				if((dist/49)%2 == 0){
-					int offset = 3*(x + y*kAppWidth);
+					int offset = 3*(x + y*kTextureSize);
 					pixels[offset] = c.r;
 					pixels[offset+1] = c.g;
 					pixels[offset+2] = c.b;
@@ -367,12 +369,12 @@ void HW01App::update()
 	while(rings_list_.size() > 0 && rings_list_[0].r <= 0) rings_list_.pop_front();
 	while(accident_list_.size() > 0 && accident_list_[0].r <= 0) accident_list_.pop_front();
 	
-	for(int i=0;i<rings_list_.size();i++){
+	for(unsigned int i=0;i<rings_list_.size();i++){
 		rings_info t = rings_list_[i];
 		drawRings(dataArray, t.x, t.y, t.r, Color8u(249,132,229));
 		rings_list_[i].r -= 4;
 	}
-	for(int i=0;i<accident_list_.size();i++){
+	for(unsigned int i=0;i<accident_list_.size();i++){
 		rings_info t = accident_list_[i];
 		drawAccident(dataArray, t.x, t.y, t.r, Color8u(249,132,229));
 		accident_list_[i].r -= 4;

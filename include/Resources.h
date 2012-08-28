@@ -1,4 +1,4 @@
 #pragma once
-#include "cinder/CinderResources.h"
+#include "cinder\CinderResources.h"
+#define RES_BABY			CINDER_RESOURCE( ../resources/, baby.jpg, 128, IMAGE )
 
-#define RES_BABY			CINDER_RESOURCE( ../resources/, baby.png, 128, IMAGE )

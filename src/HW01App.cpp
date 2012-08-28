@@ -240,11 +240,13 @@ void HW01App::selectiveBlur(uint8_t* image_to_blur, uint8_t* blur_pattern){
 					}
 				}
 			} else {
+				offset = 3*(x + y*kTextureSize);
 				total_red   = work_buffer[offset];
 				total_green = work_buffer[offset+1];
 				total_blue  = work_buffer[offset+2];
 			}
 			
+			offset = 3*(x + y*kTextureSize);
 			image_to_blur[offset]   = total_red;
 			image_to_blur[offset+1] = total_green;
 			image_to_blur[offset+2] = total_blue;
